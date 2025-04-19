@@ -49,8 +49,9 @@ class DropArea(QScrollArea):
         btn.setStyleSheet("border: none;")
 
         layout.addWidget(label)
-        layout.addStretch()
         layout.addWidget(btn)
+        layout.addWidget(label)
+        layout.addStretch()
 
         self.layout.addWidget(item_widget)
 
