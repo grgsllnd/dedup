@@ -11,10 +11,11 @@ class DropArea(QScrollArea):
 
         self.layout = QVBoxLayout(container)
         self.layout.setAlignment(Qt.AlignTop)
+        self.layout.setSpacing(4)
         self.paths = set()
 
         self.setAcceptDrops(True)
-        self.setStyleSheet("border: 2px dashed #888; padding: 10px;")
+        self.setStyleSheet("padding: 4px;")
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
@@ -37,7 +38,7 @@ class DropArea(QScrollArea):
 
         item_widget = QWidget()
         layout = QHBoxLayout(item_widget)
-        layout.setContentsMargins(5, 2, 5, 2)
+        layout.setContentsMargins(2, 0, 2, 0)
 
         label = QLabel(path)
         label.setTextInteractionFlags(Qt.TextSelectableByMouse)
