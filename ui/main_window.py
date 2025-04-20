@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 from ui.drop_area import DropArea
+from PySide6.QtGui import QGuiApplication
 import json
 from pathlib import Path
 
@@ -14,6 +15,7 @@ class AppState:
         self.destination = None
         self.favorites = {}
         self.settings_path = Path("dedup.settings")
+        self.window_size = None
 
     def load(self):
         if self.settings_path.exists():
@@ -25,6 +27,9 @@ class AppState:
                     self.sources = list(last.get("sources", []))
                     dest = last.get("destination")
                     self.destination = dest.get("path") if isinstance(dest, dict) else dest
+                    window = data.get("window", {})
+                    if isinstance(window, dict) and "width" in window and "height" in window:
+                        self.window_size = (window["width"], window["height"])
             except Exception as e:
                 print("Erreur lors du chargement des paramètres :", e)
 
@@ -33,9 +38,16 @@ class AppState:
             "sources": self.sources,
             "destination": {"path": self.destination} if self.destination else None
         }
-        print("💾 Sauvegarde dans dedup.settings :", self.sources)
+        data = {
+            "favorites": self.favorites,
+            "window": {
+                "width": self.window_size[0],
+                "height": self.window_size[1]
+            } if self.window_size else {}
+        }
+        print("💾 Sauvegarde dans dedup.settings :", self.sources, "window_size:", self.window_size)
         with open(self.settings_path, "w", encoding="utf-8") as f:
-            json.dump({"favorites": self.favorites}, f, indent=2)
+            json.dump(data, f, indent=2)
 
 app_state = AppState()
 app_state.load()
@@ -44,7 +56,14 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Dedup")
-        self.resize(700, 500)
+        if app_state.window_size:
+            self.resize(app_state.window_size[0], app_state.window_size[1])
+        else:
+            screen_geo = QGuiApplication.primaryScreen().availableGeometry()
+            w = int(screen_geo.width() * 0.8)
+            h = int(screen_geo.height() * 0.8)
+            self.resize(w, h)
+            app_state.window_size = (w, h)
 
         # Menubar
         menu_bar = QMenuBar()
@@ -132,7 +151,7 @@ class MainWindow(QMainWindow):
 
         dialog = QDialog(self)
         dialog.setWindowTitle("Favoris")
-        dialog.resize(500, 300)
+        dialog.resize(800, 600)
 
         layout = QVBoxLayout(dialog)
 
@@ -221,3 +240,9 @@ class MainWindow(QMainWindow):
         btn_save.clicked.connect(handle_save)
 
         dialog.exec()
+
+    def closeEvent(self, event):
+        size = self.size()
+        app_state.window_size = (size.width(), size.height())
+        app_state.save()
+        super().closeEvent(event)

@@ -59,5 +59,9 @@
         "path": "/Users/dev/Code/dedup/logic"
       }
     }
+  },
+  "window": {
+    "width": 853,
+    "height": 1036
   }
 }
