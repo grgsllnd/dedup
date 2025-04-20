@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QByteArray
 from ui.drop_area import DropArea
+from ui.merge_dialog import MergeDialog
 from PySide6.QtGui import QGuiApplication
 import json
 from pathlib import Path
@@ -143,6 +144,13 @@ class MainWindow(QMainWindow):
         btn_select = QPushButton("Sélectionner le dossier de destination")
         btn_select.clicked.connect(self.select_destination_folder)
         layout.addWidget(btn_select)
+
+
+        btn_move = QPushButton("Déplacer vers destination")
+        btn_move.clicked.connect(lambda: MergeDialog(self).exec())
+        layout.addWidget(btn_move)
+
+
 
         central = QWidget()
         central.setLayout(layout)

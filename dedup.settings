@@ -53,7 +53,28 @@
       "destination": "/Users/dev/Code/dedup/logic"
     },
     "last_used": {
-      "sources": [],
+      "sources": [
+        {
+          "path": "/Users/dev/Code/dedup/test_data/diff_name_diff_content/",
+          "active": true
+        },
+        {
+          "path": "/Users/dev/Code/dedup/test_data/diff_name_same_content/",
+          "active": true
+        },
+        {
+          "path": "/Users/dev/Code/dedup/test_data/nested/",
+          "active": true
+        },
+        {
+          "path": "/Users/dev/Code/dedup/test_data/same_name_diff_content/",
+          "active": true
+        },
+        {
+          "path": "/Users/dev/Code/dedup/test_data/same_name_same_content/",
+          "active": true
+        }
+      ],
       "destination": {
         "path": "/Users/dev/Code/dedup/test_data/target"
       }
@@ -141,10 +162,10 @@
     }
   },
   "window": {
-    "width": 852,
-    "height": 1035,
-    "x": 869,
-    "y": 46,
+    "width": 973,
+    "height": 725,
+    "x": 422,
+    "y": 144,
     "screen": "Built-in Retina Display"
   },
   "fav_geometry": "AdnQywADAAAAAAITAAABbQAABWcAAAN9AAACEwAAAYkAAAVnAAADfQAAAAAAAAAABsAAAAITAAABiQAABWcAAAN9"

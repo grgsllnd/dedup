@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QScrollArea, QCheckBox
 
-from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QIcon
+from PySide6.QtCore import Qt, QSize, QUrl
+from PySide6.QtGui import QIcon, QDesktopServices
 
 import os
 
@@ -56,6 +56,15 @@ class DropArea(QScrollArea):
         btn.setFlat(True)
         btn.setToolTip("Supprimer")
         layout.addWidget(btn)
+        # Open in Finder/Explorer button
+        open_btn = QPushButton("📂")
+        open_btn.setFixedSize(24, 24)
+        open_btn.setFlat(True)
+        open_btn.setToolTip("Ouvrir dans le gestionnaire de fichiers")
+        layout.addWidget(open_btn)
+        def on_open():
+            QDesktopServices.openUrl(QUrl.fromLocalFile(path))
+        open_btn.clicked.connect(on_open)
 
         label = QLabel(path)
         label.setTextInteractionFlags(Qt.TextSelectableByMouse)
