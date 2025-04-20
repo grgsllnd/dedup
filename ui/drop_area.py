@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QScrollArea, QMenuBar, QMenu, QInputDialog, QDialog, QListWidget, QTextEdit, QDialogButtonBox, QHBoxLayout, QCheckBox
+from PySide6.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QScrollArea, QCheckBox
 from PySide6.QtCore import Qt
 import os
 
@@ -6,14 +6,15 @@ class DropArea(QScrollArea):
     def __init__(self):
         super().__init__()
         self.setWidgetResizable(True)
-        container = QWidget()
-        self.setWidget(container)
 
-        self.layout = QVBoxLayout(container)
+        self.container = QWidget()
+        self.setWidget(self.container)
+
+        self.layout = QVBoxLayout(self.container)
         self.layout.setAlignment(Qt.AlignTop)
         self.layout.setSpacing(4)
-        self.paths = []
 
+        self.paths = []
         self.on_change = None
 
         self.setAcceptDrops(True)
@@ -30,66 +31,73 @@ class DropArea(QScrollArea):
     def dropEvent(self, event):
         for url in event.mimeData().urls():
             path = url.toLocalFile()
-            if os.path.isdir(path) or os.path.isfile(path):
+            if os.path.isdir(path):
                 self.add_path(path)
 
     def add_path(self, path, active=True):
         if any(p["path"] == path for p in self.paths):
             return
+
         entry = {"path": path, "active": active}
         self.paths.append(entry)
 
-        item_widget = QWidget()
-        layout = QHBoxLayout(item_widget)
-        layout.setContentsMargins(2, 0, 2, 0)
+        widget = QWidget()
+        layout = QHBoxLayout(widget)
+        layout.setContentsMargins(2, 2, 2, 2)
 
         checkbox = QCheckBox()
         checkbox.setChecked(active)
-        checkbox.stateChanged.connect(lambda state, p=path: self.update_active(p, state == Qt.Checked))
         layout.addWidget(checkbox)
 
         btn = QPushButton("🗑️")
-        btn.setFixedWidth(30)
-        btn.setCursor(Qt.PointingHandCursor)
+        btn.setFixedSize(24, 24)
         btn.setStyleSheet("border: none;")
+        layout.addWidget(btn)
 
         label = QLabel(path)
         label.setTextInteractionFlags(Qt.TextSelectableByMouse)
-
-        layout.addWidget(btn)
         layout.addWidget(label)
+
         layout.addStretch()
+        self.layout.addWidget(widget)
 
-        self.layout.addWidget(item_widget)
-        if self.on_change:
-            self.on_change(self.paths)
+        def on_toggled(checked):
+            print(f"🔄 Checkbox toggled: {path} → {checked}")
+            for item in self.paths:
+                if item["path"] == path:
+                    item["active"] = checked
+                    break
+            if self.on_change:
+                self.on_change(self.get_sources())
 
-        def remove():
-            self.layout.removeWidget(item_widget)
-            item_widget.deleteLater()
+        def on_remove():
+            self.layout.removeWidget(widget)
+            widget.deleteLater()
             self.paths = [p for p in self.paths if p["path"] != path]
             if self.on_change:
-                self.on_change(self.paths)
+                self.on_change(self.get_sources())
 
-        btn.clicked.connect(remove)
+        checkbox.toggled.connect(on_toggled)
+        btn.clicked.connect(on_remove)
 
-    def update_active(self, path, is_active):
-        updated = False
-        for item in self.paths:
-            if item["path"] == path:
-                if item["active"] != is_active:
-                    item["active"] = is_active
-                    updated = True
-                break
-        if updated and self.on_change:
-            self.on_change(self.paths)
+        if self.on_change:
+            self.on_change(self.get_sources())
 
     def clear(self):
         while self.layout.count():
-            child = self.layout.takeAt(0).widget()
-            if child:
-                child.deleteLater()
+            item = self.layout.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
         self.paths.clear()
+        if self.on_change:
+            self.on_change(self.get_sources())
 
     def get_sources(self):
         return list(self.paths)
+
+    def set_sources(self, sources):
+        self.clear()
+        for item in sources:
+            if isinstance(item, dict):
+                self.add_path(item["path"], item.get("active", True))

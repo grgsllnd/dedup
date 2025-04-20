@@ -1,18 +1,34 @@
 {
   "favorites": {
     "la": {
-      "sources": [],
+      "sources": [
+        {
+          "path": "/Users/dev/Code/dedup/ui",
+          "active": false
+        },
+        {
+          "path": "/Users/dev/Code/dedup/logic",
+          "active": true
+        }
+      ],
       "destination": {
-        "path": "/Users/dev/Code/dedup",
-        "active": false
+        "path": "/Users/dev/Code/dedup/logic"
       }
     },
     "t": {
       "sources": [
-        "/Users/dev/Code/dedup/ui",
-        "/Users/dev/Code/dedup/logic"
+        {
+          "path": "/Users/dev/Code/dedup/ui",
+          "active": true
+        },
+        {
+          "path": "/Users/dev/Code/dedup/logic",
+          "active": false
+        }
       ],
-      "destination": "/Users/dev/Code/dedup/logic"
+      "destination": {
+        "path": "/Users/dev/Code/dedup/logic"
+      }
     },
     "etert": {
       "sources": [
@@ -32,7 +48,7 @@
       "sources": [
         {
           "path": "/Users/dev/Code/dedup/ui",
-          "active": false
+          "active": true
         },
         {
           "path": "/Users/dev/Code/dedup/logic",

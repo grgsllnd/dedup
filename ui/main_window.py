@@ -1,86 +1,21 @@
-from PySide6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton, QFileDialog, QMenuBar, QMenu, QInputDialog, QDialog, QListWidget, QTextEdit, QDialogButtonBox, QHBoxLayout, QListWidgetItem
+from PySide6.QtWidgets import (
+    QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton, QFileDialog,
+    QMenuBar, QInputDialog, QDialog, QListWidget, QTextEdit,
+    QDialogButtonBox, QHBoxLayout, QListWidgetItem
+)
 from PySide6.QtCore import Qt
 from ui.drop_area import DropArea
 import json
 from pathlib import Path
 
-class MainWindow(QMainWindow):
+class AppState:
     def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Dedup")
-        
-        self.menu_bar = QMenuBar()
-        self.menu_bar.setNativeMenuBar(True)
-        self.menu_bar.addAction("Favoris", self.open_favorites_dialog)
-
-        self.resize(700, 500)
-
-        self.favorites = {}
-        # Insert top row layout with title and Favoris button
-        top_row = QHBoxLayout()
-        title_label = QLabel("Dedup")
-        btn_open_favorites = QPushButton("★ Favoris")
-        btn_open_favorites.clicked.connect(self.open_favorites_dialog)
-        top_row.addWidget(title_label)
-        top_row.addStretch()
-        top_row.addWidget(btn_open_favorites)
-
-        layout = QVBoxLayout()
-        layout.addLayout(top_row)
-
-        self.settings_path = Path("dedup.settings")
-        self.sources = set()
+        self.sources = []
         self.destination = None
+        self.favorites = {}
+        self.settings_path = Path("dedup.settings")
 
-        # --- Sources Section ---
-        layout.addWidget(QLabel("📂 Dossiers source :"))
-        self.source_drop_area = DropArea()
-        self.source_drop_area.setMinimumHeight(150)
-        self.source_drop_area.on_change = self.on_sources_changed
-        layout.addWidget(self.source_drop_area)
-
-        btn_add_source = QPushButton("Ajouter un dossier source")
-        btn_add_source.clicked.connect(self.select_source_folder)
-        layout.addWidget(btn_add_source)
-
-        btn_clear_sources = QPushButton("Tout effacer")
-        btn_clear_sources.clicked.connect(self.source_drop_area.clear)
-        layout.addWidget(btn_clear_sources)
-
-        # --- Destination Section ---
-        layout.addWidget(QLabel("🎯 Dossier de destination :"))
-        self.destination_label = QLabel("Aucun dossier sélectionné")
-        layout.addWidget(self.destination_label)
-
-        btn_select_dest = QPushButton("Sélectionner le dossier de destination")
-        btn_select_dest.clicked.connect(self.select_destination_folder)
-        layout.addWidget(btn_select_dest)
-        
-        # Removed redundant Favoris button from vertical layout
-
-        self.load_settings()
-        self.update_settings_file()
-
-        central = QWidget()
-        central.setLayout(layout)
-        self.setCentralWidget(central)
-        self.setMenuBar(self.menu_bar)
-
-    def select_source_folder(self):
-        folder = QFileDialog.getExistingDirectory(self, "Sélectionner un dossier source")
-        if folder:
-            self.source_drop_area.add_path(folder)
-            self.sources = self.source_drop_area.get_sources()
-            self.update_settings_file()
-
-    def select_destination_folder(self):
-        folder = QFileDialog.getExistingDirectory(self, "Sélectionner le dossier de destination")
-        if folder:
-            self.destination = folder
-            self.destination_label.setText(folder)
-            self.update_settings_file()
-
-    def load_settings(self):
+    def load(self):
         if self.settings_path.exists():
             try:
                 with open(self.settings_path, "r", encoding="utf-8") as f:
@@ -89,16 +24,110 @@ class MainWindow(QMainWindow):
                     last = self.favorites.get("last_used", {})
                     self.sources = list(last.get("sources", []))
                     dest = last.get("destination")
-                    self.destination = dest.get("path") if dest and "path" in dest else None
-                    for item in last.get("sources", []):
-                        self.source_drop_area.add_path(item["path"], item.get("active", True))
-                    if self.destination:
-                        self.destination_label.setText(self.destination)
+                    self.destination = dest.get("path") if isinstance(dest, dict) else dest
             except Exception as e:
-                print(f"Erreur chargement settings: {e}")
+                print("Erreur lors du chargement des paramètres :", e)
+
+    def save(self):
+        self.favorites["last_used"] = {
+            "sources": self.sources,
+            "destination": {"path": self.destination} if self.destination else None
+        }
+        print("💾 Sauvegarde dans dedup.settings :", self.sources)
+        with open(self.settings_path, "w", encoding="utf-8") as f:
+            json.dump({"favorites": self.favorites}, f, indent=2)
+
+app_state = AppState()
+app_state.load()
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Dedup")
+        self.resize(700, 500)
+
+        # Menubar
+        menu_bar = QMenuBar()
+        menu_bar.setNativeMenuBar(True)
+        menu_bar.addAction("Favoris", self.open_favorites_dialog)
+        self.setMenuBar(menu_bar)
+
+        # Top bar
+        title_row = QHBoxLayout()
+        title_row.addWidget(QLabel("Dedup"))
+        title_row.addStretch()
+        btn_fav = QPushButton("★ Favoris")
+        btn_fav.clicked.connect(self.open_favorites_dialog)
+        title_row.addWidget(btn_fav)
+
+        layout = QVBoxLayout()
+        layout.addLayout(title_row)
+
+        # Sources
+        layout.addWidget(QLabel("📂 Dossiers source :"))
+        self.source_drop_area = DropArea()
+        self.source_drop_area.setMinimumHeight(150)
+        self.source_drop_area.set_sources(app_state.sources)
+        self.source_drop_area.on_change = self.on_sources_changed
+        layout.addWidget(self.source_drop_area)
+
+        btn_add = QPushButton("Ajouter un dossier source")
+        btn_add.clicked.connect(self.select_source_folder)
+        layout.addWidget(btn_add)
+
+        btn_clear = QPushButton("Tout effacer")
+        btn_clear.clicked.connect(self.source_drop_area.clear)
+        layout.addWidget(btn_clear)
+
+        # Destination
+        layout.addWidget(QLabel("🎯 Dossier de destination :"))
+        self.destination_label = QLabel(app_state.destination or "Aucun dossier sélectionné")
+        layout.addWidget(self.destination_label)
+
+        btn_select = QPushButton("Sélectionner le dossier de destination")
+        btn_select.clicked.connect(self.select_destination_folder)
+        layout.addWidget(btn_select)
+
+        central = QWidget()
+        central.setLayout(layout)
+        self.setCentralWidget(central)
+
+    def select_source_folder(self):
+        folder = QFileDialog.getExistingDirectory(self, "Sélectionner un dossier source")
+        if folder:
+            self.source_drop_area.add_path(folder)
+
+    def select_destination_folder(self):
+        folder = QFileDialog.getExistingDirectory(self, "Sélectionner le dossier de destination")
+        if folder:
+            app_state.destination = folder
+            self.destination_label.setText(folder)
+            app_state.save()
+
+    def on_sources_changed(self, sources):
+        app_state.sources = [dict(p) for p in sources]
+        app_state.save()
+
+    def save_current_as_favorite(self, default_name=""):
+        name, ok = QInputDialog.getText(self, "Nom du favori", "Entrer un nom :", text=default_name)
+        if ok and name:
+            app_state.favorites[name] = {
+                "sources": app_state.sources,
+                "destination": {"path": app_state.destination} if app_state.destination else None
+            }
+            app_state.save()
+
+    def load_favorite(self, name):
+        fav = app_state.favorites.get(name, {})
+        app_state.sources = fav.get("sources", [])
+        dest = fav.get("destination")
+        app_state.destination = dest.get("path") if isinstance(dest, dict) else dest
+        self.source_drop_area.set_sources(app_state.sources)
+        self.destination_label.setText(app_state.destination or "Aucun dossier sélectionné")
+        app_state.save()
 
     def open_favorites_dialog(self):
-        if not self.favorites:
+        if not app_state.favorites:
             return
 
         dialog = QDialog(self)
@@ -117,65 +146,66 @@ class MainWindow(QMainWindow):
         button_box = QDialogButtonBox()
         btn_load = QPushButton("Charger")
         btn_delete = QPushButton("Supprimer")
-        btn_save_current = QPushButton("Sauvegarder actuel")
+        btn_save = QPushButton("Sauvegarder actuel")
         button_box.addButton(btn_load, QDialogButtonBox.AcceptRole)
         button_box.addButton(btn_delete, QDialogButtonBox.DestructiveRole)
-        button_box.addButton(btn_save_current, QDialogButtonBox.ActionRole)
-
+        button_box.addButton(btn_save, QDialogButtonBox.ActionRole)
         layout.addWidget(button_box)
 
-        if "last_used" in self.favorites:
-            item = QListWidgetItem("📌 Dernier utilisé")
-            list_widget.addItem(item)
+        if "last_used" in app_state.favorites:
+            list_widget.addItem("📌 Dernier utilisé")
+            list_widget.addItem("──────")
 
-            separator = QListWidgetItem("──────")
-            list_widget.addItem(separator)
-
-        for name in self.favorites:
+        for name in app_state.favorites:
             if name != "last_used":
-                item = QListWidgetItem(name)
-                list_widget.addItem(item)
+                list_widget.addItem(name)
 
         def update_info():
-            selected = list_widget.currentItem()
-            if not selected:
+            item = list_widget.currentItem()
+            if not item:
                 info_view.clear()
                 return
-            name = selected.text()
+            name = item.text()
             if name in ("──────", ""):
                 info_view.clear()
                 return
             if name == "📌 Dernier utilisé":
                 name = "last_used"
-            fav = self.favorites.get(name, {})
-
-            txt = f"[{name}]\n\nDestination:\n{fav.get('destination')}\n\nSources:\n"
-            txt += "\n".join(item["path"] if isinstance(item, dict) else item for item in fav.get("sources", []))
+            fav = app_state.favorites.get(name, {})
+            dest = fav.get("destination")
+            if isinstance(dest, dict):
+                dest_path = dest.get("path", "")
+            else:
+                dest_path = dest or ""
+            txt = f"[{name}]\n\nDestination:\n{dest_path}\n\nSources:\n"
+            for s in fav.get("sources", []):
+                # Determine path and active flag
+                if isinstance(s, dict):
+                    path = s.get("path", "")
+                    active = s.get("active", True)
+                else:
+                    path = s
+                    active = True
+                mark = "✓" if active else "✗"
+                txt += f"{mark} {path}\n"
             info_view.setPlainText(txt)
 
-        list_widget.currentItemChanged.connect(lambda: update_info())
+        list_widget.currentItemChanged.connect(update_info)
 
         def handle_load():
-            selected = list_widget.currentItem()
-            name = selected.text()
+            name = list_widget.currentItem().text()
             if name == "📌 Dernier utilisé":
                 name = "last_used"
-            if name == "──────":
-                return
-            if selected:
-                self.load_favorite(name)
-                dialog.accept()
+            self.load_favorite(name)
+            dialog.accept()
 
         def handle_delete():
-            selected = list_widget.currentItem()
-            name = selected.text()
+            name = list_widget.currentItem().text()
             if name == "📌 Dernier utilisé":
                 name = "last_used"
-            if name == "──────":
-                return
-            if selected:
-                self.favorites.pop(name, None)
-                self.update_settings_file()
+            app_state.favorites.pop(name, None)
+            app_state.save()
+            dialog.accept()
 
         def handle_save():
             selected = list_widget.currentItem()
@@ -188,40 +218,6 @@ class MainWindow(QMainWindow):
 
         btn_load.clicked.connect(handle_load)
         btn_delete.clicked.connect(handle_delete)
-        btn_save_current.clicked.connect(handle_save)
+        btn_save.clicked.connect(handle_save)
 
         dialog.exec()
-
-    def load_favorite(self, name):
-        fav = self.favorites.get(name, {})
-        self.sources = fav.get("sources", [])
-        self.destination = fav.get("destination", None)
-        pass
-        dest_path = self.destination.get("path") if isinstance(self.destination, dict) else self.destination
-        self.source_drop_area.clear()
-        for item in self.sources:
-            if isinstance(item, dict):
-                self.source_drop_area.add_path(item["path"], item.get("active", True))
-        self.destination_label.setText(dest_path or "Aucun dossier sélectionné")
-        self.update_settings_file()
-
-    def save_current_as_favorite(self, default_name=""):
-        name, ok = QInputDialog.getText(self, "Nom du favori", "Entrer un nom :", text=default_name)
-        if ok and name:
-            self.favorites[name] = {
-                "sources": self.source_drop_area.get_sources(),
-            "destination": {"path": self.destination} if self.destination else None
-            }
-            self.update_settings_file()
-
-    def update_settings_file(self):
-        self.favorites["last_used"] = {
-            "sources": self.source_drop_area.get_sources(),
-            "destination": {"path": self.destination} if self.destination else None,
-        }
-        with open(self.settings_path, "w", encoding="utf-8") as f:
-            json.dump({"favorites": self.favorites}, f, indent=2)
-
-    def on_sources_changed(self, sources):
-        self.sources = sources
-        self.update_settings_file()
