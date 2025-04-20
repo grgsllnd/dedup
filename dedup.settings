@@ -2,7 +2,10 @@
   "favorites": {
     "la": {
       "sources": [],
-      "destination": null
+      "destination": {
+        "path": "/Users/dev/Code/dedup",
+        "active": false
+      }
     },
     "t": {
       "sources": [
@@ -26,8 +29,19 @@
       "destination": "/Users/dev/Code/dedup/logic"
     },
     "last_used": {
-      "sources": [],
-      "destination": null
+      "sources": [
+        {
+          "path": "/Users/dev/Code/dedup/ui",
+          "active": false
+        },
+        {
+          "path": "/Users/dev/Code/dedup/logic",
+          "active": false
+        }
+      ],
+      "destination": {
+        "path": "/Users/dev/Code/dedup/logic"
+      }
     }
   }
 }

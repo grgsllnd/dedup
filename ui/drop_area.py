@@ -33,10 +33,10 @@ class DropArea(QScrollArea):
             if os.path.isdir(path) or os.path.isfile(path):
                 self.add_path(path)
 
-    def add_path(self, path):
+    def add_path(self, path, active=True):
         if any(p["path"] == path for p in self.paths):
             return
-        entry = {"path": path, "active": True}
+        entry = {"path": path, "active": active}
         self.paths.append(entry)
 
         item_widget = QWidget()
@@ -44,7 +44,7 @@ class DropArea(QScrollArea):
         layout.setContentsMargins(2, 0, 2, 0)
 
         checkbox = QCheckBox()
-        checkbox.setChecked(True)
+        checkbox.setChecked(active)
         checkbox.stateChanged.connect(lambda state, p=path: self.update_active(p, state == Qt.Checked))
         layout.addWidget(checkbox)
 
@@ -74,11 +74,14 @@ class DropArea(QScrollArea):
         btn.clicked.connect(remove)
 
     def update_active(self, path, is_active):
+        updated = False
         for item in self.paths:
             if item["path"] == path:
-                item["active"] = is_active
+                if item["active"] != is_active:
+                    item["active"] = is_active
+                    updated = True
                 break
-        if self.on_change:
+        if updated and self.on_change:
             self.on_change(self.paths)
 
     def clear(self):
@@ -87,3 +90,6 @@ class DropArea(QScrollArea):
             if child:
                 child.deleteLater()
         self.paths.clear()
+
+    def get_sources(self):
+        return list(self.paths)

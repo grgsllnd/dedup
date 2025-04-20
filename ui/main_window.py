@@ -31,12 +31,12 @@ class MainWindow(QMainWindow):
         self.settings_path = Path("dedup.settings")
         self.sources = set()
         self.destination = None
-        self.destination_active = False
 
         # --- Sources Section ---
         layout.addWidget(QLabel("📂 Dossiers source :"))
         self.source_drop_area = DropArea()
         self.source_drop_area.setMinimumHeight(150)
+        self.source_drop_area.on_change = self.on_sources_changed
         layout.addWidget(self.source_drop_area)
 
         btn_add_source = QPushButton("Ajouter un dossier source")
@@ -70,7 +70,7 @@ class MainWindow(QMainWindow):
         folder = QFileDialog.getExistingDirectory(self, "Sélectionner un dossier source")
         if folder:
             self.source_drop_area.add_path(folder)
-            self.sources = list(self.source_drop_area.sources)
+            self.sources = self.source_drop_area.get_sources()
             self.update_settings_file()
 
     def select_destination_folder(self):
@@ -87,15 +87,13 @@ class MainWindow(QMainWindow):
                     data = json.load(f)
                     self.favorites = data.get("favorites", {})
                     last = self.favorites.get("last_used", {})
-                    self.sources = [item.get("path") for item in last.get("sources", []) if "path" in item]
+                    self.sources = list(last.get("sources", []))
                     dest = last.get("destination")
                     self.destination = dest.get("path") if dest and "path" in dest else None
-                    self.destination_active = dest.get("active", False) if dest else False
-                    for path in self.sources:
-                        self.source_drop_area.add_path(path)
+                    for item in last.get("sources", []):
+                        self.source_drop_area.add_path(item["path"], item.get("active", True))
                     if self.destination:
                         self.destination_label.setText(self.destination)
-                    
             except Exception as e:
                 print(f"Erreur chargement settings: {e}")
 
@@ -180,7 +178,13 @@ class MainWindow(QMainWindow):
                 self.update_settings_file()
 
         def handle_save():
-            self.save_current_as_favorite()
+            selected = list_widget.currentItem()
+            default_name = ""
+            if selected:
+                label = selected.text()
+                if label not in ("──────", ""):
+                    default_name = "last_used" if label == "📌 Dernier utilisé" else label
+            self.save_current_as_favorite(default_name)
 
         btn_load.clicked.connect(handle_load)
         btn_delete.clicked.connect(handle_delete)
@@ -192,27 +196,32 @@ class MainWindow(QMainWindow):
         fav = self.favorites.get(name, {})
         self.sources = fav.get("sources", [])
         self.destination = fav.get("destination", None)
-        self.destination_active = self.destination.get("active", False) if isinstance(self.destination, dict) else False
+        pass
         dest_path = self.destination.get("path") if isinstance(self.destination, dict) else self.destination
         self.source_drop_area.clear()
-        for path in self.sources:
-            self.source_drop_area.add_path(path)
+        for item in self.sources:
+            if isinstance(item, dict):
+                self.source_drop_area.add_path(item["path"], item.get("active", True))
         self.destination_label.setText(dest_path or "Aucun dossier sélectionné")
         self.update_settings_file()
 
-    def save_current_as_favorite(self):
-        name, ok = QInputDialog.getText(self, "Nom du favori", "Entrer un nom :")
+    def save_current_as_favorite(self, default_name=""):
+        name, ok = QInputDialog.getText(self, "Nom du favori", "Entrer un nom :", text=default_name)
         if ok and name:
             self.favorites[name] = {
-                "sources": self.sources,
-                "destination": {"path": self.destination, "active": self.destination_active} if self.destination else None
+                "sources": self.source_drop_area.get_sources(),
+            "destination": {"path": self.destination} if self.destination else None
             }
             self.update_settings_file()
 
     def update_settings_file(self):
         self.favorites["last_used"] = {
-            "sources": [{"path": p} for p in self.sources],
-            "destination": {"path": self.destination, "active": self.destination_active} if self.destination else None,
+            "sources": self.source_drop_area.get_sources(),
+            "destination": {"path": self.destination} if self.destination else None,
         }
         with open(self.settings_path, "w", encoding="utf-8") as f:
             json.dump({"favorites": self.favorites}, f, indent=2)
+
+    def on_sources_changed(self, sources):
+        self.sources = sources
+        self.update_settings_file()
