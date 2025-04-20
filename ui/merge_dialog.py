@@ -64,3 +64,6 @@ class MergeDialog(QDialog):
                         # only move if file doesn't already exist there
                         if not os.path.exists(target):
                             shutil.move(path, target)
+                # Remove empty directory if nothing left
+                if not os.listdir(root):
+                    os.rmdir(root)
