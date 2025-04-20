@@ -3,7 +3,7 @@ from PySide6.QtWidgets import (
     QMenuBar, QInputDialog, QDialog, QListWidget, QTextEdit,
     QDialogButtonBox, QHBoxLayout, QListWidgetItem
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QByteArray
 from ui.drop_area import DropArea
 from PySide6.QtGui import QGuiApplication
 import json
@@ -18,6 +18,7 @@ class AppState:
         self.window_size = None
         self.window_pos = None
         self.window_screen = None
+        self.fav_window_geometry = None
 
     def load(self):
         if self.settings_path.exists():
@@ -38,6 +39,9 @@ class AppState:
                             self.window_pos = (window["x"], window["y"])
                         if "screen" in window:
                             self.window_screen = window["screen"]
+                    geom = data.get("fav_geometry")
+                    if isinstance(geom, str):
+                        self.fav_window_geometry = geom
             except Exception as e:
                 print("Erreur lors du chargement des paramètres :", e)
 
@@ -57,6 +61,8 @@ class AppState:
             "favorites": self.favorites,
             "window": win
         }
+        if self.fav_window_geometry:
+            data["fav_geometry"] = self.fav_window_geometry
         print("💾 Sauvegarde dans dedup.settings :", self.sources, "window_size:", self.window_size)
         with open(self.settings_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
@@ -172,9 +178,20 @@ class MainWindow(QMainWindow):
         if not app_state.favorites:
             return
 
-        dialog = QDialog(self)
+        dialog = QDialog()
         dialog.setWindowTitle("Favoris")
-        dialog.resize(800, 600)
+        if app_state.fav_window_geometry:
+            ba = QByteArray.fromBase64(app_state.fav_window_geometry.encode("utf-8"))
+            dialog.restoreGeometry(ba)
+        else:
+            screen_geo = QGuiApplication.primaryScreen().availableGeometry()
+            w = int(screen_geo.width() * 0.8)
+            h = int(screen_geo.height() * 0.8)
+            x0 = screen_geo.x() + (screen_geo.width() - w) // 2
+            y0 = screen_geo.y() + (screen_geo.height() - h) // 2
+            dialog.setGeometry(x0, y0, w, h)
+            app_state.fav_window_geometry = dialog.saveGeometry().toBase64().data().decode("utf-8")
+            app_state.save()
 
         layout = QVBoxLayout(dialog)
 
@@ -261,6 +278,11 @@ class MainWindow(QMainWindow):
         btn_load.clicked.connect(handle_load)
         btn_delete.clicked.connect(handle_delete)
         btn_save.clicked.connect(handle_save)
+        dialog.finished.connect(lambda _: (
+            setattr(app_state, "fav_window_geometry",
+                    dialog.saveGeometry().toBase64().data().decode("utf-8")),
+            app_state.save()
+         ))
 
         dialog.exec()
 

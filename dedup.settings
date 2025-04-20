@@ -53,6 +53,26 @@
         {
           "path": "/Users/dev/Code/dedup/logic",
           "active": false
+        },
+        {
+          "path": "/Users/dev/Desktop",
+          "active": true
+        },
+        {
+          "path": "/Users/dev/Movies",
+          "active": false
+        },
+        {
+          "path": "/Users/dev/Pictures",
+          "active": true
+        },
+        {
+          "path": "/Users/dev/Documents",
+          "active": true
+        },
+        {
+          "path": "/Users/dev/Applications",
+          "active": true
         }
       ],
       "destination": {
@@ -62,9 +82,10 @@
   },
   "window": {
     "width": 853,
-    "height": 501,
+    "height": 468,
     "x": 426,
     "y": 196,
     "screen": "Built-in Retina Display"
-  }
+  },
+  "fav_geometry": "AdnQywADAAAAAAITAAABbQAABWcAAAN9AAACEwAAAYkAAAVnAAADfQAAAAAAAAAABsAAAAITAAABiQAABWcAAAN9"
 }
