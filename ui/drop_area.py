@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QScrollArea
+from PySide6.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QScrollArea, QMenuBar, QMenu, QInputDialog, QDialog, QListWidget, QTextEdit, QDialogButtonBox, QHBoxLayout, QCheckBox
 from PySide6.QtCore import Qt
 import os
 
@@ -12,7 +12,9 @@ class DropArea(QScrollArea):
         self.layout = QVBoxLayout(container)
         self.layout.setAlignment(Qt.AlignTop)
         self.layout.setSpacing(4)
-        self.paths = set()
+        self.paths = []
+
+        self.on_change = None
 
         self.setAcceptDrops(True)
         self.setStyleSheet("padding: 4px;")
@@ -32,35 +34,52 @@ class DropArea(QScrollArea):
                 self.add_path(path)
 
     def add_path(self, path):
-        if path in self.paths:
+        if any(p["path"] == path for p in self.paths):
             return
-        self.paths.add(path)
+        entry = {"path": path, "active": True}
+        self.paths.append(entry)
 
         item_widget = QWidget()
         layout = QHBoxLayout(item_widget)
         layout.setContentsMargins(2, 0, 2, 0)
 
-        label = QLabel(path)
-        label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        checkbox = QCheckBox()
+        checkbox.setChecked(True)
+        checkbox.stateChanged.connect(lambda state, p=path: self.update_active(p, state == Qt.Checked))
+        layout.addWidget(checkbox)
 
         btn = QPushButton("🗑️")
         btn.setFixedWidth(30)
         btn.setCursor(Qt.PointingHandCursor)
         btn.setStyleSheet("border: none;")
 
-        layout.addWidget(label)
+        label = QLabel(path)
+        label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+
         layout.addWidget(btn)
         layout.addWidget(label)
         layout.addStretch()
 
         self.layout.addWidget(item_widget)
+        if self.on_change:
+            self.on_change(self.paths)
 
         def remove():
             self.layout.removeWidget(item_widget)
             item_widget.deleteLater()
-            self.paths.remove(path)
+            self.paths = [p for p in self.paths if p["path"] != path]
+            if self.on_change:
+                self.on_change(self.paths)
 
         btn.clicked.connect(remove)
+
+    def update_active(self, path, is_active):
+        for item in self.paths:
+            if item["path"] == path:
+                item["active"] = is_active
+                break
+        if self.on_change:
+            self.on_change(self.paths)
 
     def clear(self):
         while self.layout.count():

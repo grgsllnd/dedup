@@ -1,0 +1,33 @@
+{
+  "favorites": {
+    "la": {
+      "sources": [],
+      "destination": null
+    },
+    "t": {
+      "sources": [
+        "/Users/dev/Code/dedup/ui",
+        "/Users/dev/Code/dedup/logic"
+      ],
+      "destination": "/Users/dev/Code/dedup/logic"
+    },
+    "etert": {
+      "sources": [
+        "/Users/dev/Code/dedup/ui",
+        "/Users/dev/Code/dedup/logic"
+      ],
+      "destination": "/Users/dev/Code/dedup/logic"
+    },
+    "wrwer": {
+      "sources": [
+        "/Users/dev/Code/dedup/ui",
+        "/Users/dev/Code/dedup/logic"
+      ],
+      "destination": "/Users/dev/Code/dedup/logic"
+    },
+    "last_used": {
+      "sources": [],
+      "destination": null
+    }
+  }
+}

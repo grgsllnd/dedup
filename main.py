@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QMenuBar, QMenu, QInputDialog, QDialog, QListWidget, QTextEdit, QDialogButtonBox, QHBoxLayout, QVBoxLayout
 import sys
 from ui.main_window import MainWindow
 
