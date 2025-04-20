@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton, QFileDialog,
-    QMenuBar, QInputDialog, QDialog, QListWidget, QTextEdit,
-    QDialogButtonBox, QHBoxLayout, QListWidgetItem
+    QMenuBar, QMenu, QInputDialog, QDialog, QListWidget, QTextEdit,
+    QDialogButtonBox, QHBoxLayout, QListWidgetItem, QSizePolicy, QLayout
 )
 from PySide6.QtCore import Qt, QByteArray
 from ui.drop_area import DropArea
@@ -88,14 +88,31 @@ class MainWindow(QMainWindow):
         # Menubar
         menu_bar = QMenuBar()
         menu_bar.setNativeMenuBar(True)
-        menu_bar.addAction("Favoris", self.open_favorites_dialog)
+        favorites_menu = QMenu("Favoris", self)
+        favorites_menu.addAction("Ouvrir Favoris", self.open_favorites_dialog)
+        menu_bar.addMenu(favorites_menu)
         self.setMenuBar(menu_bar)
 
         # Top bar
         title_row = QHBoxLayout()
         title_row.addWidget(QLabel("Dedup"))
         title_row.addStretch()
-        btn_fav = QPushButton("★ Favoris")
+        btn_fav = QPushButton()
+        btn_fav.setFlat(True)
+        # Ensure button text size and allow horizontal expansion
+        btn_fav.setStyleSheet("font-size: 14px;")
+        btn_fav.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
+        # Layout inside the button for separate icon and text sizing
+        btn_fav_layout = QHBoxLayout(btn_fav)
+        btn_fav_layout.setContentsMargins(4, 2, 4, 2)
+        btn_fav_layout.setSpacing(4)
+        btn_fav_layout.setSizeConstraint(QLayout.SetFixedSize)
+        icon_lbl = QLabel("★")
+        icon_lbl.setStyleSheet("font-size:18px;")
+        text_lbl = QLabel("Favoris")
+        text_lbl.setStyleSheet("font-size:14px;")
+        btn_fav_layout.addWidget(icon_lbl)
+        btn_fav_layout.addWidget(text_lbl)
         btn_fav.clicked.connect(self.open_favorites_dialog)
         title_row.addWidget(btn_fav)
 

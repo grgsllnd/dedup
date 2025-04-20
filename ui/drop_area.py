@@ -1,5 +1,8 @@
 from PySide6.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QScrollArea, QCheckBox
-from PySide6.QtCore import Qt
+
+from PySide6.QtCore import Qt, QSize
+from PySide6.QtGui import QIcon
+
 import os
 
 class DropArea(QScrollArea):
@@ -18,7 +21,6 @@ class DropArea(QScrollArea):
         self.on_change = None
 
         self.setAcceptDrops(True)
-        self.setStyleSheet("padding: 4px;")
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
@@ -49,9 +51,10 @@ class DropArea(QScrollArea):
         checkbox.setChecked(active)
         layout.addWidget(checkbox)
 
-        btn = QPushButton("🗑️")
+        btn = QPushButton("⊖")
         btn.setFixedSize(24, 24)
-        btn.setStyleSheet("border: none;")
+        btn.setFlat(True)
+        btn.setToolTip("Supprimer")
         layout.addWidget(btn)
 
         label = QLabel(path)
