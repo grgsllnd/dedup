@@ -291,6 +291,14 @@ class MainWindow(QMainWindow):
                 if label not in ("──────", ""):
                     default_name = "last_used" if label == "📌 Dernier utilisé" else label
             self.save_current_as_favorite(default_name)
+            # Refresh favorites list
+            list_widget.clear()
+            if "last_used" in app_state.favorites:
+                list_widget.addItem("📌 Dernier utilisé")
+                list_widget.addItem("──────")
+            for name in app_state.favorites:
+                if name != "last_used":
+                    list_widget.addItem(name)
 
         btn_load.clicked.connect(handle_load)
         btn_delete.clicked.connect(handle_delete)

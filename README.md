@@ -99,9 +99,25 @@ L'app met automatiquement à jour `"last_used"` à chaque modification.
 pip install -r requirements.txt
 python main.py
 ```
- 
+--- 
+## 🛠️ Scripts et utilitaires
+
+### Générateur de fichiers de test
+
+Un script `generate_test_files.sh` permet de créer un jeu de données de test avec des dossiers et fichiers imbriqués pour vérifier le bon fonctionnement de l'application (cas de noms identiques, contenus identiques ou différents, plusieurs niveaux de dossiers).  
+
+**Utilisation** :
+```bash
+bash generate_test_files.sh [répertoire_de_sortie]
+```
+Par défaut, le répertoire `test_data/` est créé à la racine du projet.
+
+### Parcours récursif
+
+Dans `logic/folder_walker.py`, la fonction `list_files_recursive(folder)` renvoie la liste complète des fichiers sous un dossier, pour alimenter le traitement des doublons.
+
 ---
- 
+
 ## Auteur
  
 Grégoire Sailland  

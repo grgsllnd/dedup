@@ -53,34 +53,98 @@
       "destination": "/Users/dev/Code/dedup/logic"
     },
     "last_used": {
+      "sources": [],
+      "destination": {
+        "path": "/Users/dev/Code/dedup/test_data/target"
+      }
+    },
+    "ok": {
       "sources": [
         {
-          "path": "/Users/dev/Movies",
-          "active": false
-        },
-        {
-          "path": "/Users/dev/Pictures",
+          "path": "/Users/dev/Code/dedup/test_data/diff_name_diff_content/",
           "active": true
         },
         {
-          "path": "/Users/dev/Documents",
+          "path": "/Users/dev/Code/dedup/test_data/diff_name_same_content/",
           "active": true
         },
         {
-          "path": "/Users/dev/Applications",
+          "path": "/Users/dev/Code/dedup/test_data/nested/",
+          "active": true
+        },
+        {
+          "path": "/Users/dev/Code/dedup/test_data/same_name_diff_content/",
+          "active": true
+        },
+        {
+          "path": "/Users/dev/Code/dedup/test_data/same_name_same_content/",
           "active": true
         }
       ],
       "destination": {
-        "path": "/Users/dev/Code/dedup/logic"
+        "path": "/Users/dev/Code/dedup/test_data/target"
+      }
+    },
+    "test": {
+      "sources": [
+        {
+          "path": "/Users/dev/Code/dedup/test_data/diff_name_diff_content/",
+          "active": true
+        },
+        {
+          "path": "/Users/dev/Code/dedup/test_data/diff_name_same_content/",
+          "active": true
+        },
+        {
+          "path": "/Users/dev/Code/dedup/test_data/nested/",
+          "active": true
+        },
+        {
+          "path": "/Users/dev/Code/dedup/test_data/same_name_diff_content/",
+          "active": true
+        },
+        {
+          "path": "/Users/dev/Code/dedup/test_data/same_name_same_content/",
+          "active": true
+        }
+      ],
+      "destination": {
+        "path": "/Users/dev/Code/dedup/test_data/target"
+      }
+    },
+    "fff": {
+      "sources": [
+        {
+          "path": "/Users/dev/Code/dedup/test_data/diff_name_diff_content/",
+          "active": true
+        },
+        {
+          "path": "/Users/dev/Code/dedup/test_data/diff_name_same_content/",
+          "active": true
+        },
+        {
+          "path": "/Users/dev/Code/dedup/test_data/nested/",
+          "active": true
+        },
+        {
+          "path": "/Users/dev/Code/dedup/test_data/same_name_diff_content/",
+          "active": true
+        },
+        {
+          "path": "/Users/dev/Code/dedup/test_data/same_name_same_content/",
+          "active": true
+        }
+      ],
+      "destination": {
+        "path": "/Users/dev/Code/dedup/test_data/target"
       }
     }
   },
   "window": {
-    "width": 853,
-    "height": 468,
-    "x": 425,
-    "y": 215,
+    "width": 852,
+    "height": 1035,
+    "x": 869,
+    "y": 46,
     "screen": "Built-in Retina Display"
   },
   "fav_geometry": "AdnQywADAAAAAAITAAABbQAABWcAAAN9AAACEwAAAYkAAAVnAAADfQAAAAAAAAAABsAAAAITAAABiQAABWcAAAN9"
