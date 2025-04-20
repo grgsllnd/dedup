@@ -62,6 +62,9 @@
   },
   "window": {
     "width": 853,
-    "height": 1036
+    "height": 501,
+    "x": 426,
+    "y": 196,
+    "screen": "Built-in Retina Display"
   }
 }

@@ -16,6 +16,8 @@ class AppState:
         self.favorites = {}
         self.settings_path = Path("dedup.settings")
         self.window_size = None
+        self.window_pos = None
+        self.window_screen = None
 
     def load(self):
         if self.settings_path.exists():
@@ -30,6 +32,12 @@ class AppState:
                     window = data.get("window", {})
                     if isinstance(window, dict) and "width" in window and "height" in window:
                         self.window_size = (window["width"], window["height"])
+                    window = data.get("window", {})
+                    if isinstance(window, dict):
+                        if "x" in window and "y" in window:
+                            self.window_pos = (window["x"], window["y"])
+                        if "screen" in window:
+                            self.window_screen = window["screen"]
             except Exception as e:
                 print("Erreur lors du chargement des paramètres :", e)
 
@@ -38,12 +46,16 @@ class AppState:
             "sources": self.sources,
             "destination": {"path": self.destination} if self.destination else None
         }
+        win = {}
+        if self.window_size:
+            win["width"], win["height"] = self.window_size
+        if self.window_pos:
+            win["x"], win["y"] = self.window_pos
+        if self.window_screen:
+            win["screen"] = self.window_screen
         data = {
             "favorites": self.favorites,
-            "window": {
-                "width": self.window_size[0],
-                "height": self.window_size[1]
-            } if self.window_size else {}
+            "window": win
         }
         print("💾 Sauvegarde dans dedup.settings :", self.sources, "window_size:", self.window_size)
         with open(self.settings_path, "w", encoding="utf-8") as f:
@@ -58,6 +70,8 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Dedup")
         if app_state.window_size:
             self.resize(app_state.window_size[0], app_state.window_size[1])
+            if app_state.window_pos:
+                self.move(app_state.window_pos[0], app_state.window_pos[1])
         else:
             screen_geo = QGuiApplication.primaryScreen().availableGeometry()
             w = int(screen_geo.width() * 0.8)
@@ -144,6 +158,15 @@ class MainWindow(QMainWindow):
         self.source_drop_area.set_sources(app_state.sources)
         self.destination_label.setText(app_state.destination or "Aucun dossier sélectionné")
         app_state.save()
+
+    def closeEvent(self, event):
+        pos = self.pos()
+        app_state.window_pos = (pos.x(), pos.y())
+        screen = self.windowHandle().screen().name()
+        app_state.window_screen = screen
+        app_state.window_size = (self.width(), self.height())
+        app_state.save()
+        super().closeEvent(event)
 
     def open_favorites_dialog(self):
         if not app_state.favorites:
@@ -242,6 +265,10 @@ class MainWindow(QMainWindow):
         dialog.exec()
 
     def closeEvent(self, event):
+        pos = self.pos()
+        app_state.window_pos = (pos.x(), pos.y())
+        screen = self.windowHandle().screen().name()
+        app_state.window_screen = screen
         size = self.size()
         app_state.window_size = (size.width(), size.height())
         app_state.save()
