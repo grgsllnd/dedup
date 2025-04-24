@@ -78,43 +78,43 @@ class MergeDialog(QDialog):
                     # Skip any existing found_duplicates folders
                     if "found_duplicates" in os.path.relpath(root, base).split(os.sep):
                         continue
-                for name in files:
-                    path = os.path.join(root, name)
-                    # Compute hash
-                    with open(path, "rb") as f:
-                        h = xxhash.xxh64_hexdigest(f.read())
-                    if h in dest_checksums:
-                        # Duplicate found
-                        rel_dir = os.path.relpath(root, base)
-                        dup_dir = os.path.join(base, "found_duplicates", rel_dir)
-                        os.makedirs(dup_dir, exist_ok=True)
-                        target = os.path.join(dup_dir, name)
-                        if not os.path.exists(target):
-                            shutil.move(path, target)
-                            msg = f"[{datetime.now().strftime('%H:%M:%S')}] Duplicate: {path} -> {target}"
-                            self.log_view.append(msg)
-                            log_fp.write(msg + "\n")
-                    else:
-                        # Unique file – move to destination, avoid overwrite
-                        rel_dir = os.path.relpath(root, base)
-                        dest_path = os.path.join(dest, rel_dir, name)
-                        os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-                        if not os.path.exists(dest_path):
-                            shutil.move(path, dest_path)
-                            msg = f"[{datetime.now().strftime('%H:%M:%S')}] Moved: {path} -> {dest_path}"
-                            self.log_view.append(msg)
-                            log_fp.write(msg + "\n")
+                    for name in files:
+                        path = os.path.join(root, name)
+                        # Compute hash
+                        with open(path, "rb") as f:
+                            h = xxhash.xxh64_hexdigest(f.read())
+                        if h in dest_checksums:
+                            # Duplicate found
+                            rel_dir = os.path.relpath(root, base)
+                            dup_dir = os.path.join(base, "found_duplicates", rel_dir)
+                            os.makedirs(dup_dir, exist_ok=True)
+                            target = os.path.join(dup_dir, name)
+                            if not os.path.exists(target):
+                                shutil.move(path, target)
+                                msg = f"[{datetime.now().strftime('%H:%M:%S')}] Duplicate: {path} -> {target}"
+                                self.log_view.append(msg)
+                                log_fp.write(msg + "\n")
                         else:
-                            msg = f"[{datetime.now().strftime('%H:%M:%S')}] Skipped (exists): {path}"
-                            self.log_view.append(msg)
-                            log_fp.write(msg + "\n")
-                    processed += 1
-                    # Update progress
-                    pct = int(processed / total * 100) if total else 100
-                    self.progress.setValue(pct)
-                # Remove empty directory if nothing left
-                if not os.listdir(root):
-                    os.rmdir(root)
+                            # Unique file – move to destination, avoid overwrite
+                            rel_dir = os.path.relpath(root, base)
+                            dest_path = os.path.join(dest, rel_dir, name)
+                            os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+                            if not os.path.exists(dest_path):
+                                shutil.move(path, dest_path)
+                                msg = f"[{datetime.now().strftime('%H:%M:%S')}] Moved: {path} -> {dest_path}"
+                                self.log_view.append(msg)
+                                log_fp.write(msg + "\n")
+                            else:
+                                msg = f"[{datetime.now().strftime('%H:%M:%S')}] Skipped (exists): {path}"
+                                self.log_view.append(msg)
+                                log_fp.write(msg + "\n")
+                        processed += 1
+                        # Update progress
+                        pct = int(processed / total * 100) if total else 100
+                        self.progress.setValue(pct)
+                    # Remove empty directory if nothing left
+                    if not os.listdir(root):
+                        os.rmdir(root)
 
         self.log_view.append("Merge terminé.")
         log_fp.write("Merge completed.\n")
