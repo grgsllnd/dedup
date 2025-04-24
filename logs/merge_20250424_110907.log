@@ -1,0 +1,13 @@
+[11:09:07] DRY RUN: would move /Users/dev/Code/dedup/test_data/diff_name_diff_content/a.txt -> /Users/dev/Code/dedup/test_data/target/./a.txt
+[11:09:07] DRY RUN: would move /Users/dev/Code/dedup/test_data/diff_name_same_content/a.txt -> /Users/dev/Code/dedup/test_data/target/./a.txt
+[11:09:07] DRY RUN: would move /Users/dev/Code/dedup/test_data/nested/diff_name_same_content/b.txt -> /Users/dev/Code/dedup/test_data/target/diff_name_same_content/b.txt
+[11:09:07] DRY RUN: would move /Users/dev/Code/dedup/test_data/nested/diff_name_diff_content/b.txt -> /Users/dev/Code/dedup/test_data/target/diff_name_diff_content/b.txt
+[11:09:07] DRY RUN: would move /Users/dev/Code/dedup/test_data/nested/nested2/diff_name_same_content/b.txt -> /Users/dev/Code/dedup/test_data/target/nested2/diff_name_same_content/b.txt
+[11:09:07] DRY RUN: would move /Users/dev/Code/dedup/test_data/nested/nested2/diff_name_diff_content/b.txt -> /Users/dev/Code/dedup/test_data/target/nested2/diff_name_diff_content/b.txt
+[11:09:07] DRY RUN: would move /Users/dev/Code/dedup/test_data/nested/nested2/same_name_same_content/file.txt -> /Users/dev/Code/dedup/test_data/target/nested2/same_name_same_content/file.txt
+[11:09:07] DRY RUN: would move /Users/dev/Code/dedup/test_data/nested/nested2/same_name_diff_content/file.txt -> /Users/dev/Code/dedup/test_data/target/nested2/same_name_diff_content/file.txt
+[11:09:07] DRY RUN: would move /Users/dev/Code/dedup/test_data/nested/same_name_same_content/file.txt -> /Users/dev/Code/dedup/test_data/target/same_name_same_content/file.txt
+[11:09:07] DRY RUN: would move /Users/dev/Code/dedup/test_data/nested/same_name_diff_content/file.txt -> /Users/dev/Code/dedup/test_data/target/same_name_diff_content/file.txt
+[11:09:07] DRY RUN: would move /Users/dev/Code/dedup/test_data/same_name_diff_content/file.txt -> /Users/dev/Code/dedup/test_data/target/./file.txt
+[11:09:07] DRY RUN: would move /Users/dev/Code/dedup/test_data/same_name_same_content/file.txt -> /Users/dev/Code/dedup/test_data/target/./file.txt
+Merge completed.

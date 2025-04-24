@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-  <!-- Fond transparent -->
-  <rect width="24" height="24" fill="none"/>
-  <!-- Corps de la corbeille -->
-  <path d="M3 6h18v2H3V6zm2 3h14v13H5V9zm3 3v7h2v-7H8zm4 0v7h2v-7h-2zm4 0v7h2v-7h-2z"/>
-  <!-- Couvercle -->
-  <path d="M9 4V2h6v2h5v2H4V4h5z"/>
-</svg>
