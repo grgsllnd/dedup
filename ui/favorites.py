@@ -1,26 +1,18 @@
 from PySide6.QtWidgets import (
-    QDialog, QVBoxLayout, QListWidget, QTextEdit, QDialogButtonBox, QPushButton
+    QDialog, QVBoxLayout, QListWidget, QTextEdit, QDialogButtonBox, QPushButton, QMessageBox, QInputDialog
 )
 from PySide6.QtCore import QByteArray
 from PySide6.QtGui import QGuiApplication
+from ui.geometry_manager import GeometryManager
+from settings.state import app_state
 
-class FavoritesDialog(QDialog):
+class FavoritesDialog(QDialog, GeometryManager):
     def __init__(self, parent=None):
-        from settings.state import app_state
         super().__init__(parent)
         self.setWindowTitle("★ Favoris")
-        if app_state.fav_window_geometry:
-            ba = QByteArray.fromBase64(app_state.fav_window_geometry.encode("utf-8"))
-            self.restoreGeometry(ba)
-        else:
-            screen_geo = QGuiApplication.primaryScreen().availableGeometry()
-            w = int(screen_geo.width() * 0.8)
-            h = int(screen_geo.height() * 0.8)
-            x0 = screen_geo.x() + (screen_geo.width() - w) // 2
-            y0 = screen_geo.y() + (screen_geo.height() - h) // 2
-            self.setGeometry(x0, y0, w, h)
-            app_state.fav_window_geometry = self.saveGeometry().toBase64().data().decode("utf-8")
-            app_state.save()
+
+        # Restore geometry
+        self.restore_geometry(app_state.window_geometries, "favorites_dialog")
 
         layout = QVBoxLayout(self)
         self.list_widget = QListWidget()
@@ -30,12 +22,12 @@ class FavoritesDialog(QDialog):
         layout.addWidget(self.info_view)
 
         box = QDialogButtonBox()
-        self.btn_load   = QPushButton("Charger")
+        self.btn_load = QPushButton("Charger")
         self.btn_delete = QPushButton("Supprimer")
-        self.btn_save   = QPushButton("Sauvegarder actuel")
-        box.addButton(self.btn_load,   QDialogButtonBox.AcceptRole)
+        self.btn_save = QPushButton("Sauvegarder actuel")
+        box.addButton(self.btn_load, QDialogButtonBox.AcceptRole)
         box.addButton(self.btn_delete, QDialogButtonBox.DestructiveRole)
-        box.addButton(self.btn_save,   QDialogButtonBox.ActionRole)
+        box.addButton(self.btn_save, QDialogButtonBox.ActionRole)
         layout.addWidget(box)
 
         for label in self._initial_labels():
@@ -50,7 +42,6 @@ class FavoritesDialog(QDialog):
         self.update_info()
 
     def _initial_labels(self):
-        from settings.state import app_state
         labels = []
         if "last_used" in app_state.favorites:
             labels += ["📌 Dernier utilisé", "──────"]
@@ -60,7 +51,6 @@ class FavoritesDialog(QDialog):
         return labels
 
     def update_info(self, *_):
-        from settings.state import app_state
         item = self.list_widget.currentItem()
         if not item or item.text() in ("──────", ""):
             self.info_view.clear()
@@ -80,16 +70,35 @@ class FavoritesDialog(QDialog):
             txt += f"{'✓' if a else '✗'} {p}\n"
         self.info_view.setPlainText(txt)
 
+    def save_current_as_favorite(self, default_name=""):
+        name, ok = QInputDialog.getText(self, "Nom du favori", "Entrer un nom :", text=default_name)
+        if ok and name:
+            app_state.favorites[name] = {
+                "sources": app_state.sources,
+                "destination": {"path": app_state.destination} if app_state.destination else None
+            }
+            app_state.save()
+
+    def load_favorite(self, name):
+        fav = app_state.favorites.get(name, {})
+        if not fav:
+            QMessageBox.warning(self, "Erreur", f"Le favori '{name}' est introuvable.")
+            return
+        app_state.sources = fav.get("sources", [])
+        dest = fav.get("destination")
+        app_state.destination = dest.get("path") if isinstance(dest, dict) else dest
+        self.parent().source_drop_area.set_sources(app_state.sources)
+        self.parent().destination_label.setText(app_state.destination or "Aucun dossier sélectionné")
+        app_state.save()
+
     def handle_load(self):
-        from settings.state import app_state
         name = self.list_widget.currentItem().text()
         if name == "📌 Dernier utilisé":
             name = "last_used"
-        self.parent().load_favorite(name)
+        self.load_favorite(name)
         self.accept()
 
     def handle_delete(self):
-        from settings.state import app_state
         name = self.list_widget.currentItem().text()
         if name == "📌 Dernier utilisé":
             name = "last_used"
@@ -98,18 +107,16 @@ class FavoritesDialog(QDialog):
         self.accept()
 
     def handle_save(self):
-        from settings.state import app_state
         sel = self.list_widget.currentItem()
         default = ""
         if sel and sel.text() not in ("──────", ""):
             default = "last_used" if sel.text() == "📌 Dernier utilisé" else sel.text()
-        self.parent().save_current_as_favorite(default)
+        self.save_current_as_favorite(default)
         self.list_widget.clear()
         for label in self._initial_labels():
             self.list_widget.addItem(label)
 
-    def save_geometry(self):
-        from settings.state import app_state
-        ba = self.saveGeometry().toBase64().data().decode("utf-8")
-        app_state.fav_window_geometry = ba
+    def closeEvent(self, event):
+        self.save_geometry(app_state.window_geometries, "favorites_dialog")
         app_state.save()
+        super().closeEvent(event)

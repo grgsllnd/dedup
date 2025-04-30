@@ -10,58 +10,44 @@ class AppState:
         self.destination = None
         self.favorites = {}
         self.settings_path = Path("data") / "dedup.settings"
-        # Ensure data directory exists
-        data_dir = self.settings_path.parent
-        data_dir.mkdir(parents=True, exist_ok=True)
-        self.window_size = None
-        self.window_pos = None
-        self.window_screen = None
-        self.fav_window_geometry = None
+        self.logs_folder = "~/dedup_logs"  # Default logs folder
+        self.window_geometries = {}  # Centralized dictionary for window geometries
+
+        # Ensure the data directory exists
+        self.settings_path.parent.mkdir(parents=True, exist_ok=True)
 
     def load(self):
+        """Load settings from the settings file if it exists."""
         if self.settings_path.exists():
             try:
                 with open(self.settings_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     self.favorites = data.get("favorites", {})
-                    last = self.favorites.get("last_used", {})
-                    self.sources = list(last.get("sources", []))
-                    dest = last.get("destination")
-                    self.destination = dest.get("path") if isinstance(dest, dict) else dest
-                    window = data.get("window", {})
-                    if isinstance(window, dict):
-                        if "width" in window and "height" in window:
-                            self.window_size = (window["width"], window["height"])
-                        if "x" in window and "y" in window:
-                            self.window_pos = (window["x"], window["y"])
-                        if "screen" in window:
-                            self.window_screen = window["screen"]
-                    geom = data.get("fav_geometry")
-                    if isinstance(geom, str):
-                        self.fav_window_geometry = geom
+                    self.sources = data.get("sources", [])
+                    self.destination = data.get("destination")
+                    self.logs_folder = data.get("logs_folder", "~/dedup_logs")
+                    self.window_geometries = data.get("window_geometries", {})
+                    print(f"[DEBUG] Loaded settings: {data}")  # Debug print
             except Exception as e:
-                print("Erreur lors du chargement des paramètres :", e)
+                print(f"Error loading settings: {e}")
 
     def save(self):
-        self.favorites["last_used"] = {
-            "sources": self.sources,
-            "destination": {"path": self.destination} if self.destination else None
-        }
-        win = {}
-        if self.window_size:
-            win["width"], win["height"] = self.window_size
-        if self.window_pos:
-            win["x"], win["y"] = self.window_pos
-        if self.window_screen:
-            win["screen"] = self.window_screen
+        """Save the current settings to the settings file."""
         data = {
             "favorites": self.favorites,
-            "window": win
+            "sources": self.sources,
+            "destination": self.destination,
+            "logs_folder": self.logs_folder,
+            "window_geometries": self.window_geometries,  # Save window geometries
         }
-        if self.fav_window_geometry:
-            data["fav_geometry"] = self.fav_window_geometry
-        with open(self.settings_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
+        try:
+            with open(self.settings_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2)
+            print(f"[DEBUG] Saved settings: {data}")  # Debug print
+        except Exception as e:
+            print(f"Error saving settings: {e}")
 
+
+# Create a global instance of AppState
 app_state = AppState()
 app_state.load()

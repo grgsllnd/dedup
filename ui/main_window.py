@@ -1,5 +1,10 @@
 # /Users/dev/Code/dedup/ui/main_window.py
 from ui.favorites import FavoritesDialog
+from ui.settings_dialog import SettingsDialog
+from ui.window_utils import save_window_geometry, restore_window_geometry
+from ui.geometry_manager import GeometryManager
+from settings.state import app_state
+
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton, QFileDialog,
     QMenuBar, QMenu, QInputDialog, QHBoxLayout, QSizePolicy, QLayout,
@@ -8,23 +13,14 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from ui.drop_area import DropArea
 from ui.merge_dialog import MergeDialog
-from PySide6.QtGui import QGuiApplication
-from settings.state import app_state
 
-class MainWindow(QMainWindow):
+class MainWindow(QMainWindow, GeometryManager):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Dedup")
-        if app_state.window_size:
-            self.resize(*app_state.window_size)
-            if app_state.window_pos:
-                self.move(*app_state.window_pos)
-        else:
-            screen_geo = QGuiApplication.primaryScreen().availableGeometry()
-            w = int(screen_geo.width() * 0.8)
-            h = int(screen_geo.height() * 0.8)
-            self.resize(w, h)
-            app_state.window_size = (w, h)
+
+        # Restore window geometry
+        self.restore_geometry(app_state.window_geometries, "main_window")
 
         # Menubar
         menu_bar = QMenuBar()
@@ -32,6 +28,11 @@ class MainWindow(QMainWindow):
         fav_menu = QMenu("Favoris", self)
         fav_menu.addAction("Ouvrir Favoris", self.open_favorites_dialog)
         menu_bar.addMenu(fav_menu)
+
+        settings_menu = menu_bar.addMenu("⚙️ Paramètres")
+        settings_action = settings_menu.addAction("Ouvrir les paramètres")
+        settings_action.triggered.connect(self.open_settings)
+
         self.setMenuBar(menu_bar)
 
         # Top bar
@@ -109,24 +110,6 @@ class MainWindow(QMainWindow):
         app_state.sources = [dict(p) for p in sources]
         app_state.save()
 
-    def save_current_as_favorite(self, default_name=""):
-        name, ok = QInputDialog.getText(self, "Nom du favori", "Entrer un nom :", text=default_name)
-        if ok and name:
-            app_state.favorites[name] = {
-                "sources": app_state.sources,
-                "destination": {"path": app_state.destination} if app_state.destination else None
-            }
-            app_state.save()
-
-    def load_favorite(self, name):
-        fav = app_state.favorites.get(name, {})
-        app_state.sources = fav.get("sources", [])
-        dest = fav.get("destination")
-        app_state.destination = dest.get("path") if isinstance(dest, dict) else dest
-        self.source_drop_area.set_sources(app_state.sources)
-        self.destination_label.setText(app_state.destination or "Aucun dossier sélectionné")
-        app_state.save()
-
     def open_favorites_dialog(self):
         dlg = FavoritesDialog(self)
         dlg.exec()
@@ -142,10 +125,11 @@ class MainWindow(QMainWindow):
         dlg = MergeDialog(self, dry_run=self.dry_run_checkbox.isChecked())
         dlg.exec()
 
+    def open_settings(self):
+        dialog = SettingsDialog(self)
+        dialog.exec()
+
     def closeEvent(self, event):
-        pos = self.pos()
-        app_state.window_pos = (pos.x(), pos.y())
-        app_state.window_screen = self.windowHandle().screen().name()
-        app_state.window_size = (self.width(), self.height())
+        self.save_geometry(app_state.window_geometries, "main_window")
         app_state.save()
         super().closeEvent(event)

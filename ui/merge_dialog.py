@@ -8,14 +8,19 @@ from pathlib import Path
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QLabel, QProgressBar, QTextEdit, QPushButton, QCheckBox
 
 from processing.orchestrator import run_merge
+from ui.geometry_manager import GeometryManager
+from settings.state import app_state
 
-class MergeDialog(QDialog):
+class MergeDialog(QDialog, GeometryManager):
     def __init__(self, parent=None, dry_run=False):
         super().__init__(parent)
-        self.dry_run = dry_run
         self.setWindowTitle("Merge Sources vers Destination")
-        self.resize(600, 400)
+        self.dry_run = dry_run
 
+        # Restore geometry
+        self.restore_geometry(app_state.window_geometries, "merge_dialog")
+
+        # Dialog setup...
         layout = QVBoxLayout(self)
         layout.addWidget(QLabel("Fenêtre de fusion des sources vers la destination"))
 
@@ -41,7 +46,6 @@ class MergeDialog(QDialog):
         self.finished.connect(self.sync_debug_mode)
 
     def move_duplicates_to_found(self):
-        from settings.state import app_state
         sources = [s["path"] for s in app_state.sources if s.get("active", True)]
         dest = app_state.destination
         dry = self.debug_checkbox.isChecked()
@@ -62,3 +66,8 @@ class MergeDialog(QDialog):
         parent = self.parent()
         if parent and hasattr(parent, "dry_run_checkbox"):
             parent.dry_run_checkbox.setChecked(self.debug_checkbox.isChecked())
+
+    def closeEvent(self, event):
+        self.save_geometry(app_state.window_geometries, "merge_dialog")
+        app_state.save()
+        super().closeEvent(event)
