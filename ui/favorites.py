@@ -8,7 +8,7 @@ class FavoritesDialog(QDialog):
     def __init__(self, parent=None):
         from settings.state import app_state
         super().__init__(parent)
-        self.setWindowTitle("Favoris")
+        self.setWindowTitle("★ Favoris")
         if app_state.fav_window_geometry:
             ba = QByteArray.fromBase64(app_state.fav_window_geometry.encode("utf-8"))
             self.restoreGeometry(ba)

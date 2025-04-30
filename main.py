@@ -1,5 +1,6 @@
-from PySide6.QtWidgets import QApplication, QMenuBar, QMenu, QInputDialog, QDialog, QListWidget, QTextEdit, QDialogButtonBox, QHBoxLayout, QVBoxLayout
+# /Users/dev/Code/dedup/main.py
 import sys
+from PySide6.QtWidgets import QApplication
 from ui.main_window import MainWindow
 
 def main():

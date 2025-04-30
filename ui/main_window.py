@@ -1,7 +1,9 @@
+# /Users/dev/Code/dedup/ui/main_window.py
 from ui.favorites import FavoritesDialog
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton, QFileDialog,
-    QMenuBar, QMenu, QInputDialog, QHBoxLayout, QSizePolicy, QLayout, QCheckBox
+    QMenuBar, QMenu, QInputDialog, QHBoxLayout, QSizePolicy, QLayout,
+    QCheckBox, QMessageBox
 )
 from PySide6.QtCore import Qt
 from ui.drop_area import DropArea
@@ -130,6 +132,13 @@ class MainWindow(QMainWindow):
         dlg.exec()
 
     def open_merge_dialog(self):
+        if not app_state.destination:
+            QMessageBox.warning(
+                self,
+                "Aucun dossier de destination",
+                "Veuillez sélectionner un dossier de destination d'abord."
+            )
+            return
         dlg = MergeDialog(self, dry_run=self.dry_run_checkbox.isChecked())
         dlg.exec()
 

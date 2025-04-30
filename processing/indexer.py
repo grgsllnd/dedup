@@ -26,3 +26,22 @@ def update_index_for(path: str, idx: Index) -> None:
        .setdefault(lh, {})\
        .setdefault(fh, [])\
        .append(path)
+
+
+# Remove a file from the index (if present), cleaning up empty dicts.
+def remove_from_index(path: str, idx: Index) -> None:
+    try:
+        size = os.path.getsize(path)
+        lh = light_hash(path)
+        fh = full_hash(path)
+        paths = idx.get(size, {}).get(lh, {}).get(fh, [])
+        if path in paths:
+            paths.remove(path)
+            if not paths:
+                del idx[size][lh][fh]
+                if not idx[size][lh]:
+                    del idx[size][lh]
+                    if not idx[size]:
+                        del idx[size]
+    except FileNotFoundError:
+        pass

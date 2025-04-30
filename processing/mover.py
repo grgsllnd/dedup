@@ -11,17 +11,19 @@ def move_unique(
     dest_root: str,
     rel_root: str,
     idx,
-) -> None:
+) -> bool:
     rel = os.path.relpath(src, rel_root)
     dst = os.path.join(dest_root, rel)
     if os.path.exists(dst):
         log.warning(f"Skip path collision, exists: {dst}")
-        return
+        return False
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     shutil.move(src, dst)
     log.info(f"Moved unique: {src} → {dst}")
-    from .indexer import update_index_for
+    from .indexer import update_index_for, remove_from_index
+    remove_from_index(src, idx)
     update_index_for(dst, idx)
+    return True
 
 def move_duplicate(
     src: str,
